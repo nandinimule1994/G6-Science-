@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>States of Matter Game</title>
+
+<style>
+body {
+    font-family: Arial;
+    text-align: center;
+    background: linear-gradient(to right, #74ebd5, #ACB6E5);
+}
+
+.game-box {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    max-width: 500px;
+    margin: auto;
+}
+
+.question {
+    font-size: 22px;
+    margin: 20px 0;
+}
+
+.btn {
+    display: block;
+    width: 90%;
+    margin: 10px auto;
+    padding: 12px;
+    font-size: 18px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    background: #3498db;
+    color: white;
+}
+
+.correct {
+    background: #2ecc71 !important;
+}
+
+.wrong {
+    background: #e74c3c !important;
+}
+
+#nextBtn {
+    background: #8e44ad;
+    display: none;
+}
+
+#restart {
+    background: #f39c12;
+}
+
+canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+}
+</style>
+</head>
+
+<body>
+
+<h1>States of Matter Game</h1>
+
+<div class="game-box">
+    <div id="question" class="question"></div>
+
+    <button class="btn" id="solid" onclick="checkAnswer('solid')">Solid</button>
+    <button class="btn" id="liquid" onclick="checkAnswer('liquid')">Liquid</button>
+    <button class="btn" id="gas" onclick="checkAnswer('gas')">Gas</button>
+
+    <div id="score">Score: 0</div>
+
+    <button id="nextBtn" class="btn" onclick="nextQuestion()">Next Question</button>
+    <button id="restart" class="btn" onclick="restartGame()">Restart Game</button>
+</div>
+
+<canvas id="confetti"></canvas>
+
+<script>
+const questions = [
+    {q:"Ice", a:"solid"},
+    {q:"Water", a:"liquid"},
+    {q:"Air", a:"gas"},
+    {q:"Milk", a:"liquid"},
+    {q:"Stone", a:"solid"},
+    {q:"Steam", a:"gas"},
+    {q:"Juice", a:"liquid"},
+    {q:"Oxygen", a:"gas"},
+    {q:"Wood", a:"solid"},
+    {q:"Petrol", a:"liquid"}
+];
+
+let shuffled = [];
+let index = 0;
+let score = 0;
+
+const correctSound = new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3");
+const wrongSound = new Audio("https://www.soundjay.com/buttons/sounds/button-10.mp3");
+
+function shuffleArray(arr) {
+    return arr.sort(() => Math.random() - 0.5);
+}
+
+function loadGame() {
+    shuffled = shuffleArray([...questions]);
+    index = 0;
+    score = 0;
+    document.getElementById("score").innerHTML = "Score: 0";
+    showQuestion();
+}
+
+function showQuestion() {
+    resetButtons();
+
+    if (index >= shuffled.length) {
+        document.getElementById("question").innerHTML = "Game Over! Final Score: " + score;
+        document.getElementById("nextBtn").style.display = "none";
+        return;
+    }
+
+    document.getElementById("question").innerHTML =
+        "What is: <b>" + shuffled[index].q + "</b>?";
+
+    document.getElementById("nextBtn").style.display = "none";
+}
+
+function checkAnswer(answer) {
+    const correct = shuffled[index].a;
+
+    const solidBtn = document.getElementById("solid");
+    const liquidBtn = document.getElementById("liquid");
+    const gasBtn = document.getElementById("gas");
+
+    // disable buttons
+    solidBtn.disabled = true;
+    liquidBtn.disabled = true;
+    gasBtn.disabled = true;
+
+    if (answer === correct) {
+        score++;
+        document.getElementById(answer).classList.add("correct");
+        correctSound.play();
+        launchConfetti();
+    } else {
+        document.getElementById(answer).classList.add("wrong");
+        document.getElementById(correct).classList.add("correct");
+        wrongSound.play();
+    }
+
+    document.getElementById("score").innerHTML = "Score: " + score;
+
+    document.getElementById("nextBtn").style.display = "block";
+}
+
+function nextQuestion() {
+    index++;
+    showQuestion();
+}
+
+function resetButtons() {
+    const buttons = document.querySelectorAll(".btn");
+
+    buttons.forEach(btn => {
+        btn.classList.remove("correct", "wrong");
+        btn.disabled = false;
+    });
+}
+
+/* CONFETTI */
+const canvas = document.getElementById("confetti");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let confetti = [];
+
+function launchConfetti() {
+    for (let i = 0; i < 100; i++) {
+        confetti.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            r: Math.random() * 6 + 2,
+            d: Math.random() * 10,
+            color: "hsl(" + Math.random()*360 + ",100%,50%)"
+        });
+    }
+}
+
+function drawConfetti() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    confetti.forEach((c, i) => {
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+        ctx.fillStyle = c.color;
+        ctx.fill();
+
+        c.y += c.d;
+        if (c.y > canvas.height) {
+            confetti.splice(i, 1);
+        }
+    });
+
+    requestAnimationFrame(drawConfetti);
+}
+
+drawConfetti();
+loadGame();
+</script>
+
+</body>
+</html>
