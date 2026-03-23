@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Values & Behaviour Game</title>
+
+<style>
+    body {
+        font-family: 'Comic Sans MS', cursive;
+        background: linear-gradient(135deg, #ffecd2, #fcb69f);
+        text-align: center;
+        padding: 20px;
+    }
+
+    h1 {
+        color: #ff4d6d;
+    }
+
+    .game-box {
+        background: white;
+        padding: 20px;
+        border-radius: 20px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        max-width: 500px;
+        margin: auto;
+    }
+
+    .question {
+        font-size: 18px;
+        margin: 20px 0;
+    }
+
+    .btn {
+        display: block;
+        width: 90%;
+        margin: 10px auto;
+        padding: 12px;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        background-color: #ffd166;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    .btn:hover {
+        background-color: #ffb703;
+    }
+
+    .correct {
+        background-color: #90ee90 !important;
+    }
+
+    .wrong {
+        background-color: #ff6b6b !important;
+    }
+
+    .controls {
+        margin-top: 15px;
+    }
+
+    input[type=range] {
+        width: 80%;
+    }
+
+    #restart {
+        margin-top: 20px;
+        padding: 10px 20px;
+        background: #06d6a0;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+    }
+</style>
+</head>
+
+<body>
+
+<h1>🌟 Values & Behaviour Game 🌟</h1>
+
+<div class="game-box">
+    <div class="question" id="question"></div>
+    <div id="answers"></div>
+
+    <div class="controls">
+        🔊 Volume:
+        <input type="range" min="0" max="1" step="0.1" id="volume">
+    </div>
+
+    <button id="restart">Restart Game 🔄</button>
+</div>
+
+<canvas id="confetti"></canvas>
+
+<script>
+// Questions
+const questions = [
+{q:"Riya helps her friend pick up dropped books.", a:"Kindness"},
+{q:"Aman tells the truth even after breaking a vase.", a:"Honesty"},
+{q:"Two students work together to finish a project.", a:"Cooperation"},
+{q:"Sara says thank you to her teacher.", a:"Gratitude"},
+{q:"Rahul listens quietly when others are speaking.", a:"Respect"},
+{q:"Meena shares her lunch with a classmate.", a:"Kindness"},
+{q:"Arjun admits he forgot his homework.", a:"Honesty"},
+{q:"Kids play together and take turns.", a:"Cooperation"},
+{q:"Anya thanks her parents for helping her.", a:"Gratitude"},
+{q:"Vikram stands up when his teacher enters.", a:"Respect"}
+];
+
+const values = ["Kindness","Honesty","Cooperation","Gratitude","Respect"];
+
+let currentQ = 0;
+let shuffled = [];
+
+// Shuffle questions
+function shuffle(array) {
+    return array.sort(() => Math.random() - 0.5);
+}
+
+// Load question
+function loadQuestion() {
+    if (currentQ >= shuffled.length) {
+        document.getElementById("question").innerHTML = "🎉 You finished the game!";
+        document.getElementById("answers").innerHTML = "";
+        return;
+    }
+
+    const q = shuffled[currentQ];
+    document.getElementById("question").innerText = q.q;
+
+    let answersHTML = "";
+    const shuffledValues = shuffle([...values]);
+
+    shuffledValues.forEach(val => {
+        answersHTML += `<button class="btn" onclick="checkAnswer('${val}', this)">${val}</button>`;
+    });
+
+    document.getElementById("answers").innerHTML = answersHTML;
+}
+
+// Sound
+const correctSound = new Audio("https://www.soundjay.com/buttons/sounds/button-4.mp3");
+const wrongSound = new Audio("https://www.soundjay.com/buttons/sounds/button-10.mp3");
+
+document.getElementById("volume").addEventListener("input", function(){
+    correctSound.volume = this.value;
+    wrongSound.volume = this.value;
+});
+
+// Check answer
+function checkAnswer(selected, btn) {
+    const correct = shuffled[currentQ].a;
+    const buttons = document.querySelectorAll(".btn");
+
+    buttons.forEach(b => b.disabled = true);
+
+    if (selected === correct) {
+        btn.classList.add("correct");
+        correctSound.play();
+        launchConfetti();
+    } else {
+        btn.classList.add("wrong");
+        wrongSound.play();
+
+        buttons.forEach(b => {
+            if (b.innerText === correct) {
+                b.classList.add("correct");
+            }
+        });
+    }
+
+    setTimeout(() => {
+        currentQ++;
+        loadQuestion();
+    }, 1200);
+}
+
+// Restart
+document.getElementById("restart").onclick = () => {
+    currentQ = 0;
+    shuffled = shuffle([...questions]);
+    loadQuestion();
+};
+
+// Confetti
+const canvas = document.getElementById("confetti");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+function launchConfetti() {
+    for(let i=0;i<100;i++){
+        ctx.fillStyle = "hsl(" + Math.random()*360 + ",100%,50%)";
+        ctx.fillRect(Math.random()*canvas.width, Math.random()*canvas.height, 5, 5);
+    }
+    setTimeout(()=>ctx.clearRect(0,0,canvas.width,canvas.height),500);
+}
+
+// Start
+shuffled = shuffle([...questions]);
+loadQuestion();
+</script>
+
+</body>
+</html>
